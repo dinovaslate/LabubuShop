@@ -1,0 +1,110 @@
+Implementasi Checklist Step-by-Step
+
+1. Membuat proyek Django baru
+
+Menjalankan perintah django-admin startproject LabubuShop untuk membuat proyek utama.
+
+2. Membuat aplikasi main
+
+Masuk ke dalam direktori proyek, lalu menjalankan python manage.py startapp main.
+
+3. Routing aplikasi main
+
+Menambahkan main ke dalam INSTALLED_APPS pada settings.py.
+
+Memetakan route index atau '' ke aplikasi main melalui fungsi path dengan parameter 1 '' dan parameter 2 include("main.urls")
+
+membuat urls.py di dalam folder main
+
+4. Membuat model Product
+
+Di main/models.py, saya membuat class Product dengan field:
+
+class Product(models.Model):
+    CATEGORY_CHOICES = [
+        ("Labubu", "labubu"),
+        ("Toy", "toy"),
+        ("Shirt", "shirt")
+    ]
+    name = models.CharField(max_length=30)
+    price = models.IntegerField()
+    description = models.TextField()
+    thumbnail = models.URLField()
+    category = models.CharField(max_length=30)
+    is_featured = models.BooleanField()
+    rating = models.IntegerField()
+
+
+Menjalankan python manage.py makemigrations dan python manage.py migrate untuk update database.
+
+5. Membuat fungsi di views.py
+
+Menambahkan fungsi yang merender template HTML sederhana dengan nama aplikasi dan data diri saya.
+
+Routing di urls.py aplikasi main (meredirect routing index ke fungsi yang telah dibuat di views.py)
+
+Deployment ke PWS
+
+Membuat website baru bernama LabubuShop lalu mengepush semua file ke git repository tertentu
+
+Mengubah ALLOWED_HOST pada settings.py di aplikasi project dengan menambahkan URL PWS
+
+-----------------------------------------------------------------------------------------------------
+bagan Alur Request–Response Django
+Client Request
+      |
+      v
+   urls.py  --->  views.py  --->  models.py
+      |              |              |
+      v              v              v
+   Template HTML <--- context data <---
+
+
+Penjelasan:
+
+urls.py: menentukan path/route yang dipanggil client.
+
+views.py: berisi fungsi yang mengolah request dan menyiapkan response.
+
+models.py: berhubungan dengan database (CRUD).
+
+-----------------------------------------------------------------------------------------------------
+Peran settings.py
+
+settings.py adalah pusat konfigurasi proyek Django, meliputi:
+
+Database yang digunakan.
+
+Installed apps.
+
+Middleware.
+
+Static files dan template.
+
+Konfigurasi keamanan (secret key, debug, allowed hosts).
+
+-----------------------------------------------------------------------------------------------------
+Cara Kerja Migrasi Database di Django
+
+Saat membuat/mengubah model, Django membaca perubahan tersebut.
+
+Perintah makemigrations menghasilkan file migrasi (skrip perubahan database).
+
+Perintah migrate mengeksekusi file migrasi tersebut ke database, sehingga struktur tabel disinkronkan dengan model.
+-------------------------------------------------------------------------------------------------------
+Mengapa Django untuk Pemula?
+
+Django menggunakan pola MVT (Model-View-Template) yang rapi, sehingga mudah dipahami.
+
+Memiliki banyak fitur bawaan (auth, admin, ORM, security) sehingga pemula tidak perlu membangun dari nol.
+
+Dokumentasi sangat lengkap.
+
+Populer digunakan di industri, jadi bermanfaat untuk dipelajari sejak awal.
+-----------------------------------------------------------------------------------------------------------
+Feedback untuk Asisten Dosen Tutorial 1
+
+Menurut saya penjelasan sudah cukup jelas dan runtut
+----------------------------------------------------------------------------------------------------------
+
+Template HTML: menampilkan data dalam bentuk UI ke client.
