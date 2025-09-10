@@ -68,6 +68,8 @@ views.py: berisi fungsi yang mengolah request dan menyiapkan response.
 
 models.py: berhubungan dengan database (CRUD).
 
+Template HTML: Berfungsi untuk menampilkan data
+
 -----------------------------------------------------------------------------------------------------
 Peran settings.py
 

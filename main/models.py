@@ -3,9 +3,12 @@ import uuid
 
 class Product(models.Model):
     CATEGORY_CHOICES = [
-        ("Labubu", "labubu"),
-        ("Toy", "toy"),
-        ("Shirt", "shirt")
+        ("Player Equipment", "player equipment"),
+        ("Apparel", "apparel"),
+        ("Fan Merchandise", "fan merchandise"),
+        ("Coaching & Referee Gear", "coaching and referee gear"),
+        ("Accessories & Care", "accessories and care"),
+        ("Teamwear & Custom Kits", "teamwear and custom kits")
     ]
     name = models.CharField(max_length=30)
     price = models.IntegerField()
