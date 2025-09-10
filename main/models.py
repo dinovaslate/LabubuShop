@@ -1,21 +1,32 @@
-from django.db import models
 import uuid
+from django.db import models
 
-class Product(models.Model):
+class News(models.Model):
     CATEGORY_CHOICES = [
-        ("Player Equipment", "player equipment"),
-        ("Apparel", "apparel"),
-        ("Fan Merchandise", "fan merchandise"),
-        ("Coaching & Referee Gear", "coaching and referee gear"),
-        ("Accessories & Care", "accessories and care"),
-        ("Teamwear & Custom Kits", "teamwear and custom kits")
+        ('transfer', 'Transfer'),
+        ('update', 'Update'),
+        ('exclusive', 'Exclusive'),
+        ('match', 'Match'),
+        ('rumor', 'Rumor'),
+        ('analysis', 'Analysis'),
     ]
-    name = models.CharField(max_length=30)
-    price = models.IntegerField()
-    description = models.TextField()
-    thumbnail = models.URLField()
-    category = models.CharField(max_length=30)
-    is_featured = models.BooleanField()
-    rating = models.IntegerField()
-
-# Create your models here.
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255)
+    content = models.TextField()
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='update')
+    thumbnail = models.URLField(blank=True, null=True)
+    news_views = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_featured = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return self.title
+    
+    @property
+    def is_news_hot(self):
+        return self.news_views > 20
+        
+    def increment_views(self):
+        self.news_views += 1
+        self.save()

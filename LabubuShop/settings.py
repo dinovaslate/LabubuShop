@@ -56,10 +56,14 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'LabubuShop.urls'
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://haekal-alexander-footballnews.pbp.cs.ui.ac.id/"
+]
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [ BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
