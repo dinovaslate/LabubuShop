@@ -244,5 +244,7 @@ urlpatterns = [
 - Manual test via browser untuk list, add, detail.
 - Test API endpoints via Postman (GET /products/json/, GET /products/xml/, dll).
 
-<img src="json.png">
-<img src="xml.png">
+![XML](json.png)
+![JSON](xml.png)
+![XML_BY_ID](xml_by_id.png)
+![JSON_BY_ID](json_by_id.png)
