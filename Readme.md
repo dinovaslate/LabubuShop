@@ -244,6 +244,8 @@ urlpatterns = [
 - Manual test via browser untuk list, add, detail.
 - Test API endpoints via Postman (GET /products/json/, GET /products/xml/, dll).
 
+## 6) Feedback Asdos
+Tidak ada kak, menurut saya kerja kakak sudah bagus ❤️❤️🙏
 ![XML](json.png)
 ![JSON](xml.png)
 ![XML_BY_ID](xml_by_id.png)
