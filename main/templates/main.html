@@ -1,0 +1,61 @@
+<h1>Labubu Shop</h1>
+
+<h5>NPM: </h5>
+<p>{{ npm }}</p>
+
+<h5>Name:</h5>
+<p>{{ name }}</p>
+
+<h5>Class:</h5>
+<p>{{ class }}</p>
+
+<h5>Active User: </h5>
+<p>{{ active }}</p>
+
+<h5>Last Login:</h5>
+<p>{{last_login}}</p>
+
+<a href="{% url 'main:create_product' %}">
+  <button>+ Add Product</button>
+</a>
+<a href="{% url 'main:logout' %}">
+  <button>Logout</button>
+</a>
+<a href="?filter=all">
+  <button type="button">All Articles</button>
+</a>
+<a href="?filter=my">
+  <button type="button">My Articles</button>
+</a>
+<hr>
+
+{% if not product_list %}
+<p>Belum ada data berita pada football product.</p>
+{% else %}
+
+{% for product in product_list %}
+<div>
+  <h2><a href="{% url 'main:show_product' product.id %}">{{ product.title }}</a></h2>
+
+  <p><b>{{ product.get_category_display }}</b>{% if product.is_featured %} |
+    <b>Featured</b>{% endif %}
+    | Rp{{ product.price }}
+  </p>
+
+  {% if product.thumbnail %}
+  <img src="{{ product.thumbnail }}" alt="thumbnail" width="150" height="100">
+  <br />
+  {% else %}
+  <img src="b.png" alt="thumbnail" width="150" height="100">
+  <br />
+  {% endif %}
+
+  <p>{{ product.content|truncatewords:25 }}...</p>
+
+  <p><a href="{% url 'main:show_product' product.id %}"><button>Read More</button></a></p>
+</div>
+
+<hr>
+{% endfor %}
+
+{% endif %}
