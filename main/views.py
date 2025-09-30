@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 import datetime
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.contrib.auth.models import User
 
 @login_required(login_url='/login')
 def show_main(request):
@@ -58,14 +59,17 @@ def delete_product(request, id):
     return show_main(request)
 def register(request):
     form = UserCreationForm()
-
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Your account has been successfully created!')
-            return redirect('main:login')
     context = {'form':form}
+    if request.method == "POST":
+        usr = User.objects.filter(username=request.POST['username'])
+        context['error'] = "Username already exist"
+        if not usr.exists() :
+            form = UserCreationForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Your account has been successfully created!')
+                return redirect('main:login')
+   
     return render(request, 'register.html', context)
 @login_required(login_url='/login')
 def create_product(request):

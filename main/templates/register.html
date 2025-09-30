@@ -32,6 +32,12 @@
                 </div>
                 {% endif %}
 
+                {% if error %}
+                <div class="alert alert-danger small rounded-3 mb-2">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+                </div>
+                {% endif %}
+
                 {% if form.errors %}
                 <div class="mb-3">
                     {% for field, errors in form.errors.items %}
