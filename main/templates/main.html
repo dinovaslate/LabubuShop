@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Football Shop — Products</title>
+{% endblock meta %}
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<!-- Hero -->
+<section class="position-relative overflow-hidden bg-dark text-white">
+  <img src="{% static 'image/stadium-bg.jpg' %}" alt=""
+    class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-25">
+  <div class="container position-relative py-5" style="z-index:1;">
+    <div class="row align-items-center g-4 py-4">
+      <div class="col-lg-8">
+        <span class="badge rounded-pill text-bg-success mb-2">Fresh & Verified</span>
+        <h1 class="display-5 fw-bold mb-2">Football Products</h1>
+        <p class="lead mb-0">Gear up with curated items from players & fans.</p>
+      </div>
+      <div class="col-lg-4">
+        <!-- quick filter buttons -->
+        <div class="d-flex gap-2 justify-content-lg-end">
+          <a href="?filter=all"
+            class="btn {% if request and request.GET.filter == 'all' or not request %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill">
+            <i class="bi bi-collection me-1"></i> All
+          </a>
+          <a href="?filter=my"
+            class="btn {% if request and request.GET.filter == 'my' %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill">
+            <i class="bi bi-person-badge me-1"></i> My Items
+          </a>
+        </div>
+        {% if user.is_authenticated %}
+        <p class="text-white-50 small text-end mt-2">
+          <i class="bi bi-clock-history me-1"></i> Last login: {{ last_login }}
+        </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <!-- subtle green ribbon -->
+  <div class="position-absolute bottom-0 start-0 w-100"
+    style="height:6px;background:linear-gradient(90deg,#198754,#38c172);"></div>
+</section>
+
+<div class="container py-5">
+
+  {% if not product_list %}
+  <!-- Empty state -->
+  <div class="card border-0 shadow-sm text-center p-5">
+    <img src="https://rsnas.kulonprogokab.go.id/images/No_image.png" class="mx-auto mb-4" style="width:min(380px,60vw);"
+      alt="">
+    <h5 class="fw-bold mb-1">No products yet</h5>
+    <p class="text-muted mb-4">Be the first to add something awesome.</p>
+    <a href="{% url 'main:create_product' %}" class="btn btn-success btn-lg rounded-pill">
+      <i class="bi bi-plus-circle me-2"></i>Create Product
+    </a>
+  </div>
+  {% else %}
+
+  <!-- Tiny toolbar (sort/search placeholders – optional) -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div class="text-muted small">
+      Showing <strong>{{ product_list|length }}</strong> item(s)
+    </div>
+    <div class="d-flex gap-2">
+      <input type="text" class="form-control form-control-sm rounded-pill" placeholder="Search (UI only)">
+      <select class="form-select form-select-sm rounded-pill">
+        <option selected>Sort: Newest</option>
+        <option>Price (Low → High)</option>
+        <option>Price (High → Low)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Product grid -->
+  <div class="row g-4">
+    {% for product in product_list %}
+    <div class="col-12 col-sm-6 col-lg-4">
+      <article class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden product-card">
+        <!-- media -->
+        <div class="ratio-16x9 position-relative bg-light" style="max-height: 12rem;">
+          {% if product.thumbnail %}
+          <img src="{{ product.thumbnail }}" class="object-fit-cover w-100 h-100" alt="{{ product.title }}">
+          {% endif %}
+          <span class="badge bg-success position-absolute top-0 start-0 m-2 px-2 py-1">
+            {{ product.get_category_display|default:product.category }}
+          </span>
+          {% if product.is_featured %}
+          <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2 px-2 py-1">
+            <i class="bi bi-star-fill me-1"></i>Featured
+          </span>
+          {% endif %}
+        </div>
+
+        <!-- body -->
+        <div class="card-body">
+          <div class="d-flex align-items-center text-muted small mb-2">
+            <i class="bi bi-calendar-event me-1"></i>
+            <time datetime="{{ product.created_at|date:'c' }}">
+              {{ product.created_at|date:"M j, Y" }}
+            </time>
+            {% if product.sold %}<span class="mx-2">•</span><i class="bi bi-bag-check me-1"></i>{{ product.sold }}
+            sold{% endif %}
+          </div>
+
+          <h5 class="card-title mb-1">
+
+            <a href="{% url 'main:show_product' product.id %}" class="text-decoration-none link-success">
+              {{ product.title }}
+            </a>
+          </h5>
+          <p class="text-muted small mb-3">{{ product.content|truncatewords:22 }}</p>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="fw-bold text-success">Rp{{ product.price }}</div>
+            <a href="{% url 'main:show_product' product.id %}" class="btn btn-sm btn-outline-success rounded-pill">
+              Read more
+            </a>
+          </div>
+        </div>
+
+        <!-- owner actions -->
+        {% if user.is_authenticated and product.user == user %}
+        <div class="card-footer bg-body border-0 pt-0">
+          <div class="d-flex gap-2" style="margin-bottom: 1rem;">
+            <a href="{% url 'main:edit_product' product.id %}" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-pencil-square me-1"></i>Edit
+            </a>
+            <!-- Keep Delete inert for now to avoid reverse errors until you add the view/URL -->
+            <a href="{% url 'main:delete_product' product.id %}" class="btn btn-sm btn-outline-danger">
+              <i class="bi bi-pencil-square me-1"></i>Delete
+            </a>
+          </div>
+        </div>
+        {% endif %}
+      </article>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- FAB -->
+{% if user.is_authenticated %}
+<a href="{% url 'main:create_product' %}"
+  class="btn btn-success shadow-lg position-fixed bottom-0 end-0 m-4 p-3 rounded-circle" style="z-index:1050;">
+  <i class="fa fa-plus" aria-hidden="true"></i>
+</a>
+{% endif %}
+
+<!-- Page styles -->
+<style>
+  .product-card {
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+
+  .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .15) !important;
+  }
+</style>
+{% endblock content %}

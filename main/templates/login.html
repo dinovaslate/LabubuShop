@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>Login - Football News</title>
+{% endblock meta %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center min-vh-100 py-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <h1 class="h3 fw-bold text-dark mb-2">⚽ Sign In</h1>
+                    <p class="text-muted mb-0">Welcome back to <strong>Football News</strong></p>
+                </div>
+
+                <!-- Form Errors Display -->
+                {% if form.non_field_errors %}
+                <div class="mb-3">
+                    {% for error in form.non_field_errors %}
+                    <div class="alert alert-danger small mb-2 rounded-3">
+                        {{ error }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if form.errors %}
+                <div class="mb-3">
+                    {% for field, errors in form.errors.items %}
+                    {% if field != '__all__' %}
+                    {% for error in errors %}
+                    <div class="alert alert-danger small mb-2 rounded-3">
+                        <strong>{{ field|title }}:</strong> {{ error }}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="POST" action="">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label fw-semibold">Username</label>
+                        <input id="username" name="username" type="text" class="form-control form-control-lg rounded-3"
+                            placeholder="Enter your username" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold">Password</label>
+                        <input id="password" name="password" type="password"
+                            class="form-control form-control-lg rounded-3" placeholder="Enter your password" required>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg fw-semibold rounded-3 shadow-sm">
+                            Sign In
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Messages Display -->
+                {% if messages %}
+                <div class="mt-4">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} small rounded-3 mb-2">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="text-center mt-5 pt-3 border-top">
+                    <p class="text-muted mb-0">
+                        Don’t have an account?
+                        <a href="{% url 'main:register' %}" class="fw-semibold text-success text-decoration-none">
+                            Register Now →
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

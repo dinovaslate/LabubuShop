@@ -1,0 +1,73 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top border-bottom">
+    <div class="container-fluid px-4">
+        <!-- Brand -->
+        <a class="navbar-brand fw-bold text-dark" href="/">
+            <span class="text-success">⚽ Football</span> News
+        </a>
+
+        <!-- Toggler -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+            aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Links -->
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="/">
+                        <i class="bi bi-house-door me-1"></i> Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'main:create_product' %}">
+                        <i class="bi bi-plus-square me-1"></i> Create Product
+                    </a>
+                </li>
+            </ul>
+
+            <!-- User Section -->
+            <ul class="navbar-nav ms-auto">
+                {% if user.is_authenticated %}
+                <!-- Dropdown with user info -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
+                        role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-2 fs-5"></i>
+                        <span>{{ name|default:user.username }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+                        <li class="dropdown-item-text">
+                            <div class="small text-muted">{{ npm|default:"Student" }} - {{ class|default:"Class" }}
+                            </div>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-danger d-flex align-items-center"
+                                href="{% url 'main:logout' %}">
+                                <i class="bi bi-box-arrow-right me-2"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'main:login' %}">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-success ms-2 d-flex align-items-center" href="{% url 'main:register' %}">
+                        <i class="bi bi-person-plus me-1"></i> Register
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Extra Accent Bar -->
+<div class="bg-success" style="height:4px;"></div>

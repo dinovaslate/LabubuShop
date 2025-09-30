@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>Register - Football News</title>
+{% endblock meta %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center min-vh-100 bg-body-tertiary">
+    <div class="col-md-8 col-lg-6 col-xl-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-body p-5">
+
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <div class="mb-3">
+                        <span class="bg-primary bg-opacity-10 text-primary rounded-circle p-3">
+                            <i class="bi bi-person-plus-fill fs-2"></i>
+                        </span>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-1">Create Account</h2>
+                    <p class="text-secondary">Join <strong>Football News</strong> and stay updated ⚽</p>
+                </div>
+
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                <div class="mb-3">
+                    {% for error in form.non_field_errors %}
+                    <div class="alert alert-danger small rounded-3 mb-2">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if form.errors %}
+                <div class="mb-3">
+                    {% for field, errors in form.errors.items %}
+                    {% if field != '__all__' %}
+                    {% for error in errors %}
+                    <div class="alert alert-danger small rounded-3 mb-2">
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+                        <strong>{{ field|title }}:</strong> {{ error }}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Register Form -->
+                <form method="POST" action="">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label fw-semibold">
+                            <i class="bi bi-person-fill me-1 text-primary"></i> Username
+                        </label>
+                        <input id="username" name="username" type="text" class="form-control form-control-lg rounded-3"
+                            placeholder="Choose a username" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password1" class="form-label fw-semibold">
+                            <i class="bi bi-lock-fill me-1 text-info"></i> Password
+                        </label>
+                        <input id="password1" name="password1" type="password"
+                            class="form-control form-control-lg rounded-3" placeholder="Create a password" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password2" class="form-label fw-semibold">
+                            <i class="bi bi-shield-lock-fill me-1 text-teal"></i> Confirm Password
+                        </label>
+                        <input id="password2" name="password2" type="password"
+                            class="form-control form-control-lg rounded-3" placeholder="Confirm your password" required>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg fw-semibold rounded-3 shadow-sm">
+                            <i class="bi bi-check-circle-fill me-2"></i> Create Account
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Messages -->
+                {% if messages %}
+                <div class="mt-4">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} small rounded-3 mb-2">
+                        <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Footer -->
+                <div class="text-center mt-5 pt-3 border-top">
+                    <p class="text-muted mb-0">
+                        Already have an account?
+                        <a href="{% url 'main:login' %}" class="fw-semibold text-primary text-decoration-none">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
