@@ -1,0 +1,463 @@
+{% extends 'base.html' %} {% load static %} {% block meta %}
+<title>Labubu Shop — Products</title>
+{% endblock meta %} {% block content %} {% include 'navbar.html' %}
+
+<!-- Hero -->
+<section class="position-relative overflow-hidden bg-dark text-white">
+  <img src="{% static 'image/stadium-bg.jpg' %}" alt="" class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-25" />
+  <div class="container position-relative py-5" style="z-index: 1">
+    <div class="row align-items-center g-4 py-4">
+      <div class="col-lg-8">
+        <h1 class="display-5 fw-bold mb-2">Labubu Shop</h1>
+        <p class="lead mb-0">Gear up with curated items from players & fans.</p>
+      </div>
+      <div class="col-lg-4">
+        <!-- quick filter buttons -->
+        {% with qf=request.GET.filter %}
+        <div class="d-flex gap-2 justify-content-lg-end">
+          <a href="?filter=all" class="btn {% if qf == 'all' or not qf %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill">
+            <i class="bi bi-collection me-1"></i> All
+          </a>
+          <a href="?filter=my" class="btn {% if qf == 'my' %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill">
+            <i class="bi bi-person-badge me-1"></i> My Items
+          </a>
+        </div>
+        {% endwith %} {% if user.is_authenticated %}
+        <p class="text-white-50 small text-end mt-2"><i class="bi bi-clock-history me-1"></i> Last login: {{ last_login }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="position-absolute bottom-0 start-0 w-100" style="height: 6px; background: linear-gradient(90deg, #198754, #38c172)"></div>
+</section>
+
+<div class="container py-5">
+  {% if not product_list %}
+  <!-- Empty state -->
+  <div class="card border-0 shadow-sm text-center p-5">
+    <img src="https://rsnas.kulonprogokab.go.id/images/No_image.png" class="mx-auto mb-4" style="width: min(380px, 60vw)" alt="No items yet" />
+    <h5 class="fw-bold mb-1">No products yet</h5>
+    <p class="text-muted mb-4">Be the first to add something awesome.</p>
+    <a href="{% url 'main:create_product' %}" class="btn btn-success btn-lg rounded-pill"> <i class="bi bi-plus-circle me-2"></i>Create Product </a>
+  </div>
+  {% else %}
+
+  <!-- Tiny toolbar (sort/search placeholders – optional) -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div class="text-muted small">Showing <strong>{{ product_list|length }}</strong> item(s)</div>
+    <div class="d-flex gap-2">
+      <input type="text" class="form-control form-control-sm rounded-pill" placeholder="Search (UI only)" />
+      <select class="form-select form-select-sm rounded-pill">
+        <option selected>Sort: Newest</option>
+        <option>Price (Low → High)</option>
+        <option>Price (High → Low)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Product grid -->
+  <div class="row g-4">
+    {% for product in product_list %}
+    <div class="col-12 col-sm-6 col-lg-4">
+      <article class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden product-card">
+        <!-- media -->
+        <div class="position-relative bg-light">
+          {% if product.thumbnail %}
+          <img src="{{ product.thumbnail }}" style="max-height: 225px" class="object-fit-cover w-100 h-100" alt="{{ product.title }}" />
+          {% else %}
+          <div class="d-flex align-items-center justify-content-center w-100 h-100 text-muted small">No image</div>
+          {% endif %}
+          <span class="badge bg-success position-absolute top-0 start-0 m-2 px-2 py-1">
+            {{ product.get_category_display|default:product.category }}
+          </span>
+          {% if product.is_featured %}
+          <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2 px-2 py-1"> <i class="bi bi-star-fill me-1"></i>Featured </span>
+          {% endif %}
+        </div>
+
+        <!-- body -->
+        <div class="card-body">
+          <div class="d-flex align-items-center text-muted small mb-2">
+            <i class="bi bi-calendar-event me-1"></i>
+            <time datetime="{{ product.created_at|date:'c' }}">{{ product.created_at|date:"M j, Y" }}</time>
+            {% if product.sold %}
+            <span class="mx-2">•</span><i class="bi bi-bag-check me-1"></i>{{ product.sold }} sold {% endif %}
+          </div>
+
+          <h5 class="card-title mb-1">
+            <a href="{% url 'main:show_product' product.id %}" class="text-decoration-none link-success"> {{ product.title }} </a>
+          </h5>
+          <p class="text-muted small mb-3">{{ product.content|truncatewords:22 }}</p>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="fw-bold text-success">Rp{{ product.price }}</div>
+            <a href="{% url 'main:show_product' product.id %}" class="btn btn-sm btn-outline-success rounded-pill"> Read more </a>
+          </div>
+        </div>
+
+        <!-- owner actions -->
+        {% if user.is_authenticated and product.user == user %}
+        <div class="card-footer bg-body border-0 pt-0">
+          <div class="d-flex gap-2" style="margin-bottom: 1rem">
+            <a href="{% url 'main:edit_product' product.id %}" class="btn btn-sm btn-outline-secondary open-edit-modal">
+              <i class="bi bi-pencil-square me-1"></i>Edit
+            </a>
+
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-danger rounded-pill js-open-delete"
+              data-url="{% url 'main:delete_product' product.id %}"
+              data-title="{{ product.title }}"
+            >
+              <i class="bi bi-trash me-1"></i> Delete
+            </button>
+          </div>
+        </div>
+        {% endif %}
+      </article>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- Page styles -->
+<style>
+  .product-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15) !important;
+  }
+  .object-fit-cover {
+    object-fit: cover;
+  }
+
+  /* ===== Edit modal sizing: fits viewport, scrolls inside ===== */
+  #editModal {
+    display: none;
+  }
+  #editModal:not([hidden]) {
+    display: block;
+  }
+  #editModal .modal-shell {
+    width: min(860px, 96vw);
+    margin: 4vh auto;
+    border-radius: 24px;
+    background: transparent;
+  }
+  #editModal .modal-scroll {
+    max-height: 88vh;
+    overflow: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  @media (max-width: 576px) {
+    #editModal .modal-shell {
+      width: 96vw;
+      margin: 2vh auto;
+      border-radius: 16px;
+    }
+    #editModal .modal-scroll {
+      max-height: 92vh;
+    }
+  }
+</style>
+
+<!-- Hidden form just to expose CSRF token -->
+<form id="csrf-holder" style="display: none">{% csrf_token %}</form>
+
+<!-- Confirm Delete Modal -->
+<div
+  id="confirmModal"
+  hidden
+  class="position-fixed top-0 start-0 w-100 h-100"
+  style="background: rgba(16, 24, 16, 0.45); backdrop-filter: blur(2px); z-index: 1080"
+  role="dialog"
+  aria-modal="true"
+>
+  <div class="position-absolute bottom-0 start-50 translate-middle-x mb-4" style="width: min(560px, 92vw)">
+    <div class="card shadow-lg border-0 rounded-4">
+      <div class="card-body p-4">
+        <h5 class="mb-2 fw-bold">Delete this product?</h5>
+        <p class="text-secondary mb-4" id="confirmText">You’re about to delete.</p>
+        <div class="d-flex gap-2 justify-content-end">
+          <button type="button" class="btn btn-outline-secondary rounded-pill" id="cancelDelete">Cancel</button>
+          <button type="button" class="btn btn-danger rounded-pill" id="confirmDeleteBtn">
+            <span class="me-1">Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL (overlay + body holder) -->
+<div
+  id="editModal"
+  hidden
+  class="position-fixed top-0 start-0 w-100 h-100"
+  style="background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(2px); z-index: 1082"
+>
+  <div class="modal-shell card border-0 shadow-xl rounded-4 overflow-hidden bg-transparent">
+    <div class="d-flex justify-content-end p-2">
+      <button type="button" class="btn btn-sm btn-light rounded-pill" id="closeEditModal">Close</button>
+    </div>
+    <!-- Tailwind fragment will be injected here -->
+    <div id="editModalBody" class="modal-scroll p-2"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div
+  id="toast"
+  class="position-fixed bottom-0 end-0 m-4 p-3 rounded-3 shadow"
+  style="background: #1a3b2a; color: #e8ffe8; display: none; z-index: 1081"
+>
+  <span id="toastMsg">Saved.</span>
+</div>
+
+<script>
+  (() => {
+    const $ = (sel, ctx = document) => ctx.querySelector(sel);
+    const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
+    const getCSRF = () => $("#csrf-holder input[name='csrfmiddlewaretoken']")?.value;
+
+    // ===== Delete modal =====
+    const delModal = $('#confirmModal');
+    const confirmBtn = $('#confirmDeleteBtn');
+    const cancelBtn = $('#cancelDelete');
+    const confirmText = $('#confirmText');
+    const toast = $('#toast');
+    const toastMsg = $('#toastMsg');
+    let pending = { url: null, cardEl: null };
+
+    $$('.js-open-delete').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const title = btn.dataset.title || 'this product';
+        confirmText.textContent = `This action cannot be undone. Delete “${title}”?`;
+        pending.url = btn.dataset.url;
+        pending.cardEl = btn.closest('.col-12, .col-sm-6, .col-lg-4') || btn.closest('article') || btn.closest('.card');
+        delModal.hidden = false;
+      });
+    });
+    cancelBtn?.addEventListener('click', () => (delModal.hidden = true));
+    delModal?.addEventListener('click', (e) => {
+      if (e.target === delModal) delModal.hidden = true;
+    });
+    document.addEventListener('keydown', (e) => {
+      if (!delModal.hidden && e.key === 'Escape') delModal.hidden = true;
+    });
+
+    confirmBtn?.addEventListener('click', async () => {
+      if (!pending.url) return;
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Deleting…';
+      try {
+        const res = await fetch(pending.url, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCSRF(),
+            'X-Requested-With': 'XMLHttpRequest',
+            Accept: 'application/json',
+          },
+        });
+        if (!res.ok) throw new Error('Delete failed');
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || 'Delete failed');
+        if (pending.cardEl) pending.cardEl.remove();
+        showToast('Deleted successfully.');
+      } catch (err) {
+        showToast('Couldn’t delete. Please try again.');
+        console.error(err);
+      } finally {
+        delModal.hidden = true;
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<span class="me-1">Delete</span>';
+        pending = { url: null, cardEl: null };
+      }
+    });
+
+    function showToast(msg) {
+      toastMsg.textContent = msg;
+      toast.style.display = 'block';
+      toast.style.opacity = '1';
+      setTimeout(() => {
+        toast.style.transition = 'opacity .4s ease';
+        toast.style.opacity = '0';
+        setTimeout(() => {
+          toast.style.display = 'none';
+          toast.style.transition = '';
+        }, 400);
+      }, 1400);
+    }
+
+    // ===== Edit modal (AJAX load + submit) =====
+    const editModal = $('#editModal');
+    const editModalBody = $('#editModalBody');
+    const closeEditBtn = $('#closeEditModal');
+
+    function lockBodyScroll(lock) {
+      document.body.style.overflow = lock ? 'hidden' : '';
+    }
+    function openEditModal(html) {
+      editModalBody.innerHTML = html;
+      editModal.hidden = false;
+      lockBodyScroll(true);
+      editModalBody.scrollTop = 0;
+    }
+    function closeEdit() {
+      editModal.hidden = true;
+      lockBodyScroll(false);
+      editModalBody.innerHTML = '';
+    }
+
+    function wireEditOpeners() {
+      $$('.open-edit-modal').forEach((a) => {
+        a.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const url = a.getAttribute('href');
+          try {
+            const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const html = await res.text();
+            // ensure we only inject the fragment
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const frag = doc.querySelector('#edit-product-fragment');
+            if (!frag) {
+              window.location.href = url;
+              return;
+            }
+            openEditModal(frag.outerHTML);
+            twify(editModalBody);
+            wireEditForm(editModalBody);
+          } catch (err) {
+            console.error(err);
+            window.location.href = url; // fallback
+          }
+        });
+      });
+    }
+
+    function twify(root) {
+      root.querySelectorAll('input[type="text"],input[type="url"],input[type="number"],select,textarea').forEach((el) => {
+        el.classList.add(
+          'w-full',
+          'rounded-xl',
+          'bg-white/10',
+          'pl-10',
+          'pr-3',
+          'py-2.5',
+          'text-white',
+          'placeholder-white/80',
+          'ring-1',
+          'ring-white/35',
+          'focus:ring-2',
+          'focus:ring-white/90',
+          'shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]'
+        );
+      });
+      root.querySelectorAll('textarea').forEach((t) => t.classList.add('min-h-[140px]'));
+      root.querySelectorAll('input[type="checkbox"]').forEach((cb) => cb.classList.add('h-4', 'w-4', 'rounded', 'border-white/40', 'bg-white/10'));
+      const map = {
+        id_title: 'Enter product name',
+        id_thumbnail: 'https://example.com/image.jpg',
+        id_price: '150000',
+        id_content: 'Describe your product...',
+      };
+      Object.entries(map).forEach(([id, ph]) => {
+        const el = root.querySelector('#' + id);
+        if (el && !el.placeholder) el.placeholder = ph;
+      });
+    }
+
+    function wireEditForm(root) {
+      const form = root.querySelector('#editProductForm');
+      if (!form) return;
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(form);
+        try {
+          const res = await fetch(form.action || window.location.href, {
+            method: 'POST',
+            body: fd,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': getCSRF(),
+            },
+            credentials: 'same-origin',
+          });
+
+          const ctype = res.headers.get('content-type') || '';
+          if (ctype.includes('application/json')) {
+            const data = await res.json();
+            if (data.ok) {
+              window.location.href = data.redirect || window.location.href;
+              return;
+            }
+          }
+
+          // got HTML with validation errors -> re-render just the fragment
+          const html = await res.text();
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const frag = doc.querySelector('#edit-product-fragment');
+          if (frag) {
+            editModalBody.innerHTML = frag.outerHTML;
+            twify(editModalBody);
+            wireEditForm(editModalBody);
+            editModalBody.scrollTop = 0;
+          } else {
+            window.location.reload();
+          }
+        } catch (err) {
+          console.error(err);
+          window.location.reload();
+        }
+      });
+    }
+
+    // close handlers
+    closeEditBtn?.addEventListener('click', closeEdit);
+    editModal?.addEventListener('click', (e) => {
+      if (e.target === editModal) closeEdit();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (!editModal.hidden && e.key === 'Escape') closeEdit();
+    });
+
+    // init
+    wireEditOpeners();
+  })();
+</script>
+
+{# ===== MESSAGE → TOAST BRIDGE ===== #} {% if messages %}
+<script>
+  (() => {
+    const t = document.getElementById('toast');
+    const m = document.getElementById('toastMsg');
+
+    // take the first message once (keeps JS valid for linters)
+    let msg = '{% for message in messages %}{{ message|escapejs }}{% if not forloop.last %}\n{% endif %}{% endfor %}';
+
+    if (!t || !m || !msg) return;
+
+    m.textContent = msg;
+    t.style.display = 'block';
+    t.style.opacity = '1';
+    setTimeout(() => {
+      t.style.transition = 'opacity .4s ease';
+      t.style.opacity = '0';
+      setTimeout(() => {
+        t.style.display = 'none';
+        t.style.transition = '';
+      }, 400);
+    }, 1600);
+  })();
+</script>
+
+<script>
+  window.PRODUCTS_JSON_URL = "{% url 'main:show_json' %}";
+  window.CREATE_PRODUCT_URL = "{% url 'main:create_product' %}";
+</script>
+
+{% endif %} {% endblock content %}

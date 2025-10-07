@@ -1,0 +1,103 @@
+<!-- partials/edit_product_fragment.html -->
+<div id="edit-product-fragment"
+     class="relative w-full max-w-3xl rounded-[28px] border border-white/25 bg-white/5 text-white shadow-2xl backdrop-blur-xl overflow-hidden mx-auto">
+  <div class="pointer-events-none absolute inset-0 rounded-[28px] opacity-10"
+       style="background:linear-gradient(180deg,#E2F2AD 0%,#C8EBA9 10%,#98D6AE 30%,#67B8BB 55%,#4F91B3 75%,#3B6D94 100%);"></div>
+
+  <div class="relative p-8 sm:p-10">
+    <div class="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full bg-emerald-900/80 ring-1 ring-emerald-400/70">
+      <div class="grid h-8 w-8 place-items-center rounded-full bg-lime-200 text-emerald-900 font-bold">★</div>
+    </div>
+
+    <h1 class="text-center text-2xl sm:text-3xl font-semibold">Edit Product</h1>
+    <p class="mt-2 text-center text-white/80">Polish your listing so fans see the best of your gear</p>
+
+    {% if form.non_field_errors %}
+    <div class="mt-5 space-y-2">
+      {% for err in form.non_field_errors %}
+      <div class="rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-sm">{{ err }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form id="editProductForm" method="POST" action="{{ request.path }}" data-ajax="true">
+
+      {% csrf_token %}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+        <div class="relative">
+          <label for="{{ form.title.id_for_label }}" class="mb-1 block text-xs text-white/80">Name</label>
+          <span class="pointer-events-none absolute left-3 top-9 text-white/65">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <path d="M20 13l-7 7-9-9V4h7l9 9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </span>
+          {{ form.title }}
+          {% for error in form.title.errors %}<div class="mt-1 text-sm text-red-200">{{ error }}</div>{% endfor %}
+        </div>
+
+        <div class="relative">
+          <label for="{{ form.category.id_for_label }}" class="mb-1 block text-xs text-white/80">Category</label>
+          <span class="pointer-events-none absolute left-3 top-9 text-white/65">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+          {{ form.category }}
+          {% for error in form.category.errors %}<div class="mt-1 text-sm text-red-200">{{ error }}</div>{% endfor %}
+        </div>
+
+        <div class="relative">
+          <label for="{{ form.thumbnail.id_for_label }}" class="mb-1 block text-xs text-white/80">Thumbnail (URL)</label>
+          <span class="pointer-events-none absolute left-3 top-9 text-white/65">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <path d="M4 5h16v14H4z" stroke="currentColor" stroke-width="2"/><path d="M8 13l3-3 5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+          {{ form.thumbnail }}
+          <p class="mt-1 text-xs text-white/70">Paste an image URL for the card preview.</p>
+          {% for error in form.thumbnail.errors %}<div class="mt-1 text-sm text-red-200">{{ error }}</div>{% endfor %}
+        </div>
+
+        <div class="relative">
+          <label for="{{ form.price.id_for_label }}" class="mb-1 block text-xs text-white/80">Price (IDR)</label>
+          <span class="pointer-events-none absolute left-3 top-9 text-white/65">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3v18M7 8h8a4 4 0 010 8H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+          {{ form.price }}
+          <p class="mt-1 text-xs text-white/70">Use whole numbers (e.g., 150000).</p>
+          {% for error in form.price.errors %}<div class="mt-1 text-sm text-red-200">{{ error }}</div>{% endfor %}
+        </div>
+      </div>
+
+      <div class="relative mt-4">
+        <label for="{{ form.content.id_for_label }}" class="mb-1 block text-xs text-white/80">Description</label>
+        <span class="pointer-events-none absolute left-3 top-9 text-white/65">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12V8z" stroke="currentColor" stroke-width="2"/>
+            <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        {{ form.content }}
+        <p class="mt-1 text-xs text-white/70">Describe features, size, material, and condition.</p>
+        {% for error in form.content.errors %}<div class="mt-1 text-sm text-red-200">{{ error }}</div>{% endfor %}
+      </div>
+
+      {% if form.is_featured %}
+      <div class="mt-4 flex items-center gap-3 rounded-xl border border-white/25 bg-white/5 px-3 py-2">
+        {{ form.is_featured }}
+        <label for="{{ form.is_featured.id_for_label }}" class="text-sm">Mark as featured</label>
+      </div>
+      {% endif %}
+
+      <div class="space-y-4 pt-6">
+        <button type="submit"
+                class="w-full rounded-xl border border-white/40 bg-gradient-to-r from-emerald-400/30 to-sky-500/30 px-4 py-3 font-medium text-white hover:brightness-95">
+          Save Product
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

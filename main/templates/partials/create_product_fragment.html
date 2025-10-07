@@ -1,0 +1,92 @@
+{# templates/partials/create_product_fragment.html #}
+<div id="create-product-fragment" class="card shadow-lg border-0 rounded-4 overflow-hidden bg-white">
+  <div class="p-4 border-bottom">
+    <span class="badge rounded-pill text-bg-success">New Item</span>
+    <h2 class="h5 fw-bold mt-2 mb-0">Create Product</h2>
+    <small class="text-secondary">Add a new listing to your store.</small>
+  </div>
+
+  <div class="card-body p-4">
+    {% if form.non_field_errors %}
+    <div class="mb-3">
+      {% for err in form.non_field_errors %}
+      <div class="alert alert-danger small rounded-3 mb-2">{{ err }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form id="createProductForm" method="POST" action="{% url 'main:create_product' %}" novalidate>
+      {% csrf_token %}
+
+      <div class="row g-4">
+        <div class="col-12 col-md-6" style="display: flex; flex-direction: column; justify-content: flex-start">
+          <label class="form-label fw-semibold" style="text-align: left">Name</label>
+          {{ form.title }} {% for error in form.title.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="col-12 col-md-6" style="display: flex; flex-direction: column; justify-content: flex-start">
+          <label class="form-label fw-semibold" style="text-align: left">Category</label>
+          {{ form.category }} {% for error in form.category.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="col-12 col-md-6" style="display: flex; flex-direction: column; justify-content: flex-start">
+          <label class="form-label fw-semibold" style="text-align: left">Thumbnail (URL)</label>
+          {{ form.thumbnail }}
+          <div class="form-text">Paste an image URL.</div>
+          {% for error in form.thumbnail.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="col-12 col-md-6" style="display: flex; flex-direction: column; justify-content: flex-start">
+          <label class="form-label fw-semibold" style="text-align: left">Price (IDR)</label>
+          {{ form.price }}
+          <div class="form-text">Numbers only, e.g. 150000</div>
+          {% for error in form.price.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="col-12" style="display: flex; flex-direction: column; justify-content: flex-start">
+          <label class="form-label fw-semibold" style="text-align: left">Description</label>
+          {{ form.content }} {% for error in form.content.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        {% if form.is_featured %}
+        <div class="col-12">
+          <div class="border border-success-subtle bg-success-subtle rounded-3 p-2">
+            <div class="form-check m-0 d-flex align-items-center">
+              {{ form.is_featured }}
+              <label class="form-check-label ms-2 fw-semibold">Mark as featured</label>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="d-flex flex-column flex-sm-row gap-2 justify-content-end mt-4">
+        <button type="button" class="btn btn-outline-secondary" id="closeCreateModal">Cancel</button>
+        <button type="reset" class="btn btn-success-subtle border border-success-subtle">Reset</button>
+        <button type="submit" class="btn btn-success">Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Add Bootstrap classes to default Django widgets
+  (function (root) {
+    const form = root.querySelector('#createProductForm');
+    if (!form) return;
+    form
+      .querySelectorAll('input[type="text"], input[type="url"], input[type="number"], input[type="password"], select, textarea')
+      .forEach((el) => el.classList.add('form-control', 'rounded-3'));
+    form.querySelectorAll('input[type="checkbox"]').forEach((el) => el.classList.add('form-check-input'));
+  })(document.currentScript.closest('#create-product-fragment') || document);
+</script>

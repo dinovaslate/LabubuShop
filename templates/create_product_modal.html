@@ -1,0 +1,37 @@
+<!-- CREATE PRODUCT MODAL (AJAX loader) -->
+<div id="createProductModal" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+  <!-- gradient + blur backdrop -->
+  <div class="position-absolute top-0 start-0 w-100 h-100" 
+       style="background:linear-gradient(180deg, rgba(163,230,53,.35), rgba(14,165,233,.35)); backdrop-filter: blur(6px);">
+  </div>
+  <div class="position-relative d-flex min-vh-100 align-items-center justify-content-center p-3">
+    <div role="dialog" aria-modal="true"
+         class="position-relative w-100" style="max-width: 840px; max-height: calc(100dvh - 2rem); overflow:auto;">
+      <div id="createModalBody" class="text-white-50 py-5 text-center">
+        <div class="placeholder-wave">
+          <span class="placeholder col-8"></span>
+        </div>
+      </div>
+      <button type="button" id="closeCreateModal"
+              class="btn btn-light position-absolute top-0 end-0 m-3 rounded-circle p-2">
+        <span class="visually-hidden">Close</span>
+        ×
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- create_product_modal.html (minimal placeholder) -->
+<div id="createProductModal" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+  <div class="relative flex min-h-full items-center justify-center p-4">
+    <div id="createModalBody" class="w-full max-w-2xl bg-white rounded-3 p-4">
+      <!-- The AJAX fragment from create view will be injected here -->
+      Loading…
+    </div>
+    <button id="closeCreateModal" type="button" class="btn btn-light position-absolute top-0 end-0 m-3">
+      Close
+    </button>
+  </div>
+</div>

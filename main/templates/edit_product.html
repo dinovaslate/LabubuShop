@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Edit Product — Labubu Shop</title>
+{% endblock meta %}
+
+{% block content %}
+<section class="relative min-h-screen flex items-center justify-center px-4 py-12">
+  <!-- Page background: aurora gradient + blur -->
+  <div class="absolute inset-0 -z-10">
+    <div class="absolute inset-0 bg-gradient-to-b from-lime-200/40 via-teal-400/40 to-sky-800/60"></div>
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+  </div>
+
+  <!-- Glass card (injectable fragment for AJAX/modal use) -->
+  <div id="edit-product-fragment"
+       class="relative w-full max-w-3xl rounded-[28px] border border-white/25 bg-white/5 text-white shadow-2xl backdrop-blur-xl overflow-hidden">
+    <!-- inner glow like your login -->
+    <div class="pointer-events-none absolute inset-0 rounded-[28px] opacity-10"
+         style="background:linear-gradient(180deg,#E2F2AD 0%,#C8EBA9 10%,#98D6AE 30%,#67B8BB 55%,#4F91B3 75%,#3B6D94 100%);"></div>
+
+    <div class="relative p-8 sm:p-10">
+      <!-- top badge -->
+      <div class="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full bg-emerald-900/80 ring-1 ring-emerald-400/70">
+        <div class="grid h-8 w-8 place-items-center rounded-full bg-lime-200 text-emerald-900 font-bold">★</div>
+      </div>
+
+      <h1 class="text-center text-2xl sm:text-3xl font-semibold">Edit Product</h1>
+      <p class="mt-2 text-center text-white/80">Polish your listing so fans see the best of your gear</p>
+
+      <!-- Non-field errors -->
+      {% if form.non_field_errors %}
+      <div class="mt-5 space-y-2">
+        {% for err in form.non_field_errors %}
+        <div class="rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-sm">{{ err }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form id="editProductForm" method="POST" action="{{ request.path }}" class="mt-8 space-y-6">
+
+        {% csrf_token %}
+
+        <!-- Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Title -->
+          <div class="relative">
+            <label for="{{ form.title.id_for_label }}" class="mb-1 block text-xs text-white/80">Name</label>
+            <span class="pointer-events-none absolute left-3 top-9 text-white/65">
+              <!-- tag icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <path d="M20 13l-7 7-9-9V4h7l9 9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </span>
+            {{ form.title }}
+            {% for error in form.title.errors %}
+            <div class="mt-1 text-sm text-red-200">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <!-- Category -->
+          <div class="relative">
+            <label for="{{ form.category.id_for_label }}" class="mb-1 block text-xs text-white/80">Category</label>
+            <span class="pointer-events-none absolute left-3 top-9 text-white/65">
+              <!-- list icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            {{ form.category }}
+            {% for error in form.category.errors %}
+            <div class="mt-1 text-sm text-red-200">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <!-- Thumbnail -->
+          <div class="relative">
+            <label for="{{ form.thumbnail.id_for_label }}" class="mb-1 block text-xs text-white/80">Thumbnail (URL)</label>
+            <span class="pointer-events-none absolute left-3 top-9 text-white/65">
+              <!-- image icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <path d="M4 5h16v14H4z" stroke="currentColor" stroke-width="2"/><path d="M8 13l3-3 5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            {{ form.thumbnail }}
+            <p class="mt-1 text-xs text-white/70">Paste an image URL for the card preview.</p>
+            {% for error in form.thumbnail.errors %}
+            <div class="mt-1 text-sm text-red-200">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <!-- Price -->
+          <div class="relative">
+            <label for="{{ form.price.id_for_label }}" class="mb-1 block text-xs text-white/80">Price (IDR)</label>
+            <span class="pointer-events-none absolute left-3 top-9 text-white/65">
+              <!-- currency icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3v18M7 8h8a4 4 0 010 8H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            {{ form.price }}
+            <p class="mt-1 text-xs text-white/70">Use whole numbers (e.g., 150000).</p>
+            {% for error in form.price.errors %}
+            <div class="mt-1 text-sm text-red-200">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="relative">
+          <label for="{{ form.content.id_for_label }}" class="mb-1 block text-xs text-white/80">Description</label>
+          <span class="pointer-events-none absolute left-3 top-9 text-white/65">
+            <!-- file-text icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12V8z" stroke="currentColor" stroke-width="2"/>
+              <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+          {{ form.content }}
+          <p class="mt-1 text-xs text-white/70">Describe features, size, material, and condition.</p>
+          {% for error in form.content.errors %}
+          <div class="mt-1 text-sm text-red-200">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Featured -->
+        {% if form.is_featured %}
+        <div class="flex items-center gap-3 rounded-xl border border-white/25 bg-white/5 px-3 py-2">
+          {{ form.is_featured }}
+          <label for="{{ form.is_featured.id_for_label }}" class="text-sm">Mark as featured</label>
+        </div>
+        {% endif %}
+
+        <!-- Actions like your login page -->
+        <div class="space-y-4 pt-2">
+          <button type="submit"
+                  class="w-full rounded-xl border border-white/40 bg-gradient-to-r from-emerald-400/30 to-sky-500/30 px-4 py-3 font-medium text-white hover:brightness-95">
+            Save Product
+          </button>
+
+          <div class="flex items-center gap-4">
+            <div class="h-px flex-1 bg-white/40"></div>
+            <span class="text-sm text-white/70">or</span>
+            <div class="h-px flex-1 bg-white/40"></div>
+          </div>
+
+          <a href="{% url 'main:show_main' %}"
+             class="block w-full rounded-xl bg-white/10 px-4 py-3 text-center font-medium text-white/90 border border-white/25 hover:bg-white/15">
+            Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Tailwind-ify Django widgets & AJAX submit -->
+<script>
+(function () {
+  const root = document.getElementById('edit-product-fragment');
+  if (!root) return;
+
+  function stylize() {
+    // Add Tailwind classes to Django widgets
+    root.querySelectorAll('input[type="text"], input[type="url"], input[type="number"], select, textarea')
+      .forEach(el => {
+        el.classList.add(
+          'w-full','rounded-xl','bg-white/10','pl-10','pr-3','py-2.5','text-white',
+          'placeholder-white/80','ring-1','ring-white/35','focus:ring-2','focus:ring-white/90',
+          'shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]'
+        );
+        // make textarea taller
+        if (el.tagName.toLowerCase() === 'textarea') el.classList.add('min-h-[140px]');
+      });
+
+    // Featured checkbox minimal styling
+    root.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.classList.add('h-4','w-4','rounded','border-white/40','bg-white/10','align-middle');
+    });
+
+    // Placeholders if not set by form
+    const map = {
+      id_title: 'Enter product name',
+      id_thumbnail: 'https://example.com/image.jpg',
+      id_price: '150000',
+      id_content: 'Describe your product...',
+    };
+    Object.entries(map).forEach(([id, ph]) => {
+      const el = root.querySelector('#' + id);
+      if (el && !el.placeholder) el.placeholder = ph;
+    });
+  }
+
+  async function ajaxSubmit() {
+    const form = document.getElementById('editProductForm');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const res = await fetch(form.action || window.location.href, {
+        method: 'POST',
+        body: fd,
+        credentials: 'same-origin',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': fd.get('csrfmiddlewaretoken') || ''
+        },
+        redirect: 'follow'
+      });
+
+      if (res.redirected) {
+        // Saved successfully — follow Django redirect
+        window.location.href = res.url;
+        return;
+      }
+
+      const html = await res.text();
+      const doc  = new DOMParser().parseFromString(html, 'text/html');
+      const frag = doc.querySelector('#edit-product-fragment');
+      if (frag) {
+        root.replaceWith(frag);
+        // re-bind and re-style on the new fragment
+        setTimeout(() => {
+          // re-run on the newly inserted node
+          const newRoot = document.getElementById('edit-product-fragment');
+          if (!newRoot) return;
+          // re-run styles
+          (function attachStylesOn(newNode){
+            newNode.querySelectorAll('input[type="text"], input[type="url"], input[type="number"], select, textarea')
+              .forEach(el => el.classList.add(
+                'w-full','rounded-xl','bg-white/10','pl-10','pr-3','py-2.5','text-white',
+                'placeholder-white/80','ring-1','ring-white/35','focus:ring-2','focus:ring-white/90',
+                'shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]'
+              ));
+            newNode.querySelectorAll('textarea').forEach(t => t.classList.add('min-h-[140px]'));
+            newNode.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.classList.add('h-4','w-4','rounded','border-white/40','bg-white/10'));
+          })(newRoot);
+
+          // reattach submit handler
+          (function rewire(){
+            const f2 = document.getElementById('editProductForm');
+            if (!f2) return;
+            // prevent stacking multiple handlers
+            f2.addEventListener('submit', (ev)=>ev.preventDefault(), { once:true });
+          })();
+
+          // run whole initializer again to ensure everything is bound
+          // (simple way without global state)
+          setTimeout(() => (function(){ /* no-op to keep scope clean */ })(), 0);
+        }, 0);
+      } else {
+        // fallback
+        window.location.reload();
+      }
+    });
+  }
+
+  stylize();
+  ajaxSubmit();
+})();
+</script>
+{% endblock content %}

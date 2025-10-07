@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>Login - Labubu Shop</title>
+{% endblock meta %}
+
+{% block content %}
+<section class="relative min-h-screen flex items-center justify-center px-4 py-12">
+  <!-- page background (stays if user visits /login directly) -->
+  <div class="absolute inset-0 -z-10">
+    <div class="absolute inset-0 bg-gradient-to-b from-lime-200/40 via-teal-400/40 to-sky-800/60"></div>
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+  </div>
+
+  <!-- ===== inject THIS into the modal ===== -->
+  <div id="login-fragment"
+       class="relative w-full max-w-xl rounded-[28px] border border-white/25 bg-white/5 text-white shadow-2xl backdrop-blur-xl">
+    <div class="pointer-events-none absolute inset-0 rounded-[28px] opacity-10"
+         style="background:linear-gradient(180deg,#E2F2AD 0%,#C8EBA9 10%,#98D6AE 30%,#67B8BB 55%,#4F91B3 75%,#3B6D94 100%);"></div>
+
+    <div class="relative p-8 sm:p-10">
+      <div class="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full bg-emerald-900/80 ring-1 ring-emerald-400/70">
+        <div class="grid h-8 w-8 place-items-center rounded-full bg-lime-200 text-emerald-900 font-bold">®</div>
+      </div>
+
+      <h1 class="text-center text-2xl sm:text-3xl font-semibold">Sign in to Your Account</h1>
+      <p class="mt-2 text-center text-white/80">Step into the ultimate arena for football fans where passion meets performance</p>
+
+      {% if form and form.non_field_errors %}
+        <div class="mt-5 space-y-2">
+          {% for error in form.non_field_errors %}
+            <div class="rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-sm">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if form and form.errors %}
+        <div class="mt-3 space-y-2">
+          {% for field, errors in form.errors.items %}
+            {% if field != '__all__' %}
+              {% for error in errors %}
+                <div class="rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-sm">
+                  <strong>{{ field|title }}:</strong> {{ error }}
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="POST" action="" class="mt-8 space-y-6" id="loginForm">
+        {% csrf_token %}
+        <div class="relative">
+          <label for="username" class="mb-1 block text-xs text-white/80">Username</label>
+          <span class="pointer-events-none absolute left-3 top-9 text-white/65">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <path d="M12 12a5 5 0 100-10 5 5 0 000 10zM3 21a9 9 0 1118 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <input id="username" name="username" type="text" autocomplete="username"
+                 placeholder="Enter Your Username"
+                 class="w-full rounded-xl bg-white/10 pl-10 pr-3 py-2.5 text-white placeholder-white/80
+                        ring-1 ring-white/35 focus:ring-2 focus:ring-white/90
+                        shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]" required>
+        </div>
+
+        <div class="relative">
+          <label for="password" class="mb-1 block text-xs text-white/80">Password</label>
+          <span class="pointer-events-none absolute left-3 top-9 text-white/65">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <path d="M6 10h12v10H6z" stroke="currentColor" stroke-width="2"/>
+              <path d="M9 10V8a3 3 0 016 0v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <input id="password" name="password" type="password" autocomplete="current-password"
+                 placeholder="Enter Your Password"
+                 class="w-full rounded-xl bg-white/10 pl-10 pr-12 py-2.5 text-white placeholder-white/80
+                        ring-1 ring-white/35 focus:ring-2 focus:ring-white/90
+                        shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]" required>
+        </div>
+
+        <button type="submit"
+                class="w-full rounded-xl border border-white/40 bg-gradient-to-r from-emerald-400/30 to-sky-500/30
+                       px-4 py-3 font-medium text-white hover:brightness-95">
+          Sign In
+        </button>
+
+        <div class="flex items-center gap-4">
+          <div class="h-px flex-1 bg-white/40"></div>
+          <span class="text-sm text-white/70">New here?</span>
+          <div class="h-px flex-1 bg-white/40"></div>
+        </div>
+        <a href="{% url 'main:register' %}"
+           class="block w-full rounded-xl bg-white/10 px-4 py-3 text-center font-medium text-white/90
+                  border border-white/25 hover:bg-white/15">
+          Create Account
+        </a>
+      </form>
+    </div>
+  </div>
+  <!-- ===== end fragment ===== -->
+</section>
+
+<!-- Toast (green, bottom-right) -->
+<div id="toast"
+     class="fixed bottom-4 right-4 z-[1081] m-4 rounded-lg px-4 py-3 shadow-lg"
+     style="background:#1a3b2a;color:#e8ffe8;display:none;">
+  <span id="toastMsg">Saved.</span>
+</div>
+
+{# Holder with the FIRST message in a data attribute #}
+{% if messages %}
+  {% for m in messages %}
+    {% if forloop.first %}
+      <div id="toast-data" data-msg="{{ m|escape }}"></div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+<script>
+;(() => {
+  const t = document.getElementById('toast');
+  const m = document.getElementById('toastMsg');
+  const holder = document.getElementById('toast-data');
+  const msg = holder ? holder.dataset.msg : null;
+
+  if (!t || !m || !msg) return;
+
+  m.textContent = msg;
+  t.style.display = "block";
+  t.style.opacity = "1";
+  setTimeout(() => {
+    t.style.transition = "opacity .4s ease";
+    t.style.opacity = "0";
+    setTimeout(() => { t.style.display = "none"; t.style.transition = ""; }, 400);
+  }, 1600);
+})();
+</script>
+
+
+
+{% endblock content %}

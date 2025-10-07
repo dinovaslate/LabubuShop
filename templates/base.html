@@ -1,0 +1,640 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Bootstrap & Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <style>
+      a {
+        text-decoration: none;
+      }
+    </style>
+    <!-- Tailwind (preflight disabled to avoid Bootstrap conflicts) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        corePlugins: { preflight: false },
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+            colors: { brand: { 50: '#e9fce9' } },
+          },
+        },
+      };
+    </script>
+
+    {% block meta %}{% endblock meta %}
+  </head>
+
+  <body>
+    {% block content %}{% endblock content %}
+
+    <!-- ===========================
+       LOGIN MODAL (AJAX, loader)
+       =========================== -->
+    <div id="loginModal" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+      <!-- aurora backdrop -->
+      <div class="absolute inset-0 bg-gradient-to-b from-lime-200/40 via-teal-400/40 to-sky-800/60"></div>
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+
+      <div class="relative flex min-h-full items-center justify-center p-4">
+        <!-- ▼ constrained wrapper: fits screen & scrolls internally -->
+        <div
+          role="dialog"
+          aria-modal="true"
+          class="relative w-full max-w-xl max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain px-1 sm:px-0"
+        >
+          <div id="loginModalBody" class="min-h-[120px] flex items-center justify-center text-white/80"></div>
+
+          <!-- close -->
+          <button
+            type="button"
+            id="closeLoginModal"
+            class="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-white/10 hover:bg-white/20 focus:outline-none"
+          >
+            <span class="sr-only">Close</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================
+       EDIT PRODUCT MODAL (AJAX loader, reusable)
+       ========================================= -->
+    <div id="editProductModal" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+      <!-- aurora backdrop -->
+      <div class="absolute inset-0 bg-gradient-to-b from-lime-200/40 via-teal-400/40 to-sky-800/60"></div>
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
+
+      <div class="relative flex min-h-full items-center justify-center p-4">
+        <!-- ▼ constrained wrapper: fits screen & scrolls internally -->
+        <div
+          role="dialog"
+          aria-modal="true"
+          class="relative w-full max-w-3xl max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain px-1 sm:px-0"
+        >
+          <div id="editModalBody" class="min-h-[160px] flex items-center justify-center text-white/80">
+            <div class="animate-pulse">Loading…</div>
+          </div>
+
+          <!-- close -->
+          <button
+            type="button"
+            id="closeEditModal"
+            class="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-white/10 hover:bg-white/20 focus:outline-none"
+          >
+            <span class="sr-only">Close</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- ===========================
+       LOGIN MODAL CONTROLLER (AJAX)
+       =========================== -->
+    <script>
+      (() => {
+        const modalEl = document.getElementById('loginModal');
+        const bodyEl = document.getElementById('loginModalBody');
+        const openEl = document.getElementById('openLoginModal') || null; // navbar trigger
+        const closeEl = document.getElementById('closeLoginModal');
+
+        if (!modalEl || !bodyEl || !closeEl) return;
+
+        let lastFocus = null;
+
+        function openModal() {
+          lastFocus = document.activeElement;
+          modalEl.classList.remove('hidden');
+          modalEl.removeAttribute('aria-hidden');
+          document.body.style.overflow = 'hidden';
+          const first = bodyEl.querySelector('input,button,select,textarea,[tabindex]:not([tabindex="-1"])');
+          if (first) first.focus();
+          document.addEventListener('keydown', onKey);
+          modalEl.addEventListener('mousedown', onBackdrop);
+        }
+        function closeModal() {
+          modalEl.classList.add('hidden');
+          modalEl.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+          document.removeEventListener('keydown', onKey);
+          modalEl.removeEventListener('mousedown', onBackdrop);
+          if (lastFocus) lastFocus.focus();
+        }
+        function onBackdrop(ev) {
+          const card = bodyEl.firstElementChild;
+          if (card && !card.contains(ev.target)) closeModal();
+        }
+        function onKey(ev) {
+          if (ev.key === 'Escape') return closeModal();
+        }
+
+        async function loadLogin(url) {
+          bodyEl.innerHTML = '<div class="animate-pulse text-white/80 py-12">Loading…</div>';
+          const res = await fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+          const html = await res.text();
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const frag = doc.querySelector('#login-fragment');
+          if (!frag) {
+            bodyEl.innerHTML = '<div class="text-white">Failed to load login.</div>';
+            return;
+          }
+          bodyEl.innerHTML = '';
+          bodyEl.appendChild(frag);
+          wireAjaxSubmit();
+          openModal();
+        }
+
+        function wireAjaxSubmit() {
+          const form = bodyEl.querySelector('#loginForm');
+          if (!form) return;
+
+          form.addEventListener(
+            'submit',
+            async (e) => {
+              e.preventDefault();
+              const fd = new FormData(form);
+              const res = await fetch(form.action || window.location.href, {
+                method: 'POST',
+                body: fd,
+                credentials: 'same-origin',
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'X-CSRFToken': fd.get('csrfmiddlewaretoken') || '',
+                },
+                redirect: 'follow',
+              });
+
+              if (res.redirected) {
+                window.location.href = res.url;
+                return;
+              }
+
+              const html = await res.text();
+              const doc = new DOMParser().parseFromString(html, 'text/html');
+              const frag = doc.querySelector('#login-fragment');
+              if (frag) {
+                bodyEl.innerHTML = '';
+                bodyEl.appendChild(frag);
+                wireAjaxSubmit();
+                const focusTarget = bodyEl.querySelector('#username') || bodyEl.querySelector('input');
+                if (focusTarget) focusTarget.focus();
+              } else {
+                window.location.reload();
+              }
+            },
+            { once: true }
+          );
+        }
+
+        if (openEl)
+          openEl.addEventListener('click', (e) => {
+            e.preventDefault();
+            loadLogin(openEl.getAttribute('href'));
+          });
+        closeEl.addEventListener('click', closeModal);
+
+        // Optional: auto open if requested via dataset on modal
+        if (modalEl.dataset.autoOpen === 'true' && openEl) loadLogin(openEl.getAttribute('href'));
+      })();
+    </script>
+
+    <!-- ==================================
+       EDIT PRODUCT MODAL CONTROLLER (AJAX)
+       ================================== -->
+    <script>
+      (() => {
+        const modal = document.getElementById('editProductModal');
+        const bodyEl = document.getElementById('editModalBody');
+        const closeEl = document.getElementById('closeEditModal');
+
+        if (!modal || !bodyEl || !closeEl) return;
+
+        let lastFocus = null;
+
+        function openModal() {
+          lastFocus = document.activeElement;
+          modal.classList.remove('hidden');
+          modal.removeAttribute('aria-hidden');
+          document.body.style.overflow = 'hidden';
+          document.addEventListener('keydown', onKey);
+          modal.addEventListener('mousedown', onBackdrop);
+          focusFirst();
+        }
+        function closeModal() {
+          modal.classList.add('hidden');
+          modal.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+          document.removeEventListener('keydown', onKey);
+          modal.removeEventListener('mousedown', onBackdrop);
+          if (lastFocus) lastFocus.focus();
+        }
+        function onBackdrop(ev) {
+          const card = bodyEl.firstElementChild;
+          if (!card || !card.contains(ev.target)) closeModal();
+        }
+        function onKey(ev) {
+          if (ev.key === 'Escape') closeModal();
+        }
+        function focusFirst() {
+          const n = bodyEl.querySelector('input,select,textarea,button,[tabindex]:not([tabindex="-1"])');
+          if (n) n.focus();
+        }
+
+        // Tailwind-ify Django widgets inside the injected fragment
+        function stylizeFragment(root) {
+          if (!root) return;
+          root.querySelectorAll('input[type="text"], input[type="url"], input[type="number"], select, textarea').forEach((el) => {
+            el.classList.add(
+              'w-full',
+              'rounded-xl',
+              'bg-white/10',
+              'pl-10',
+              'pr-3',
+              'py-2.5',
+              'text-white',
+              'placeholder-white/80',
+              'ring-1',
+              'ring-white/35',
+              'focus:ring-2',
+              'focus:ring-white/90',
+              'shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]'
+            );
+            if (el.tagName.toLowerCase() === 'textarea') el.classList.add('min-h-[140px]');
+          });
+          root.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+            cb.classList.add('h-4', 'w-4', 'rounded', 'border-white/40', 'bg-white/10');
+          });
+        }
+
+        // Wire AJAX submit for the edit form
+        function wireAjax(root) {
+          const form = root.querySelector('#editProductForm');
+          if (!form) return;
+
+          form.addEventListener(
+            'submit',
+            async (e) => {
+              e.preventDefault();
+              const fd = new FormData(form);
+              const res = await fetch(form.action || window.location.href, {
+                method: 'POST',
+                body: fd,
+                credentials: 'same-origin',
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'X-CSRFToken': fd.get('csrfmiddlewaretoken') || '',
+                },
+                redirect: 'follow',
+              });
+
+              const ctype = res.headers.get('content-type') || '';
+              if (ctype.includes('application/json')) {
+                const data = await res.json();
+                if (data.ok && data.redirect) {
+                  window.location.href = data.redirect;
+                  return;
+                }
+              }
+
+              if (res.redirected) {
+                window.location.href = res.url;
+                return;
+              }
+
+              const html = await res.text();
+              const doc = new DOMParser().parseFromString(html, 'text/html');
+              const frag = doc.querySelector('#edit-product-fragment');
+              if (!frag) return window.location.reload();
+
+              bodyEl.innerHTML = '';
+              bodyEl.appendChild(frag);
+              stylizeFragment(bodyEl);
+              wireAjax(bodyEl);
+              focusFirst();
+            },
+            { once: true }
+          );
+        }
+
+        // Load fragment from /edit URL into modal
+        async function loadEdit(url) {
+          bodyEl.innerHTML = '<div class="animate-pulse text-white/80 py-16">Loading…</div>';
+          const res = await fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+          const html = await res.text();
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const frag = doc.querySelector('#edit-product-fragment');
+
+          if (!frag) {
+            bodyEl.innerHTML = '<div class="text-white/90">Unable to load the editor.</div>';
+            return;
+          }
+          bodyEl.innerHTML = '';
+          bodyEl.appendChild(frag);
+          stylizeFragment(bodyEl);
+          wireAjax(bodyEl);
+          openModal();
+        }
+
+        // Event delegation for any ".open-edit-modal" link
+        document.addEventListener('click', (e) => {
+          const a = e.target.closest('.open-edit-modal');
+          if (!a) return;
+          const href = a.getAttribute('href');
+          if (!href) return;
+          e.preventDefault();
+          loadEdit(href);
+        });
+
+        closeEl.addEventListener('click', closeModal);
+      })();
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+
+    {% include 'toast.html' %} {% include 'create_product_modal.html' %}
+    <script src="{% static 'js/toast.js' %}"></script>
+    <script src="{% static 'js/labubu.js' %}"></script>
+
+    <script>
+      (() => {
+        const modal = document.getElementById('createProductModal');
+        const bodyEl = document.getElementById('createModalBody');
+        const closeEl = document.getElementById('closeCreateModal');
+
+        if (!modal || !bodyEl) return;
+
+        // open/close helpers
+        function openModal() {
+          modal.classList.remove('hidden');
+          modal.removeAttribute('aria-hidden');
+          document.body.style.overflow = 'hidden';
+        }
+        function closeModal() {
+          modal.classList.add('hidden');
+          modal.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+        }
+        if (closeEl) closeEl.addEventListener('click', closeModal);
+
+        // delegation for any [data-open-create] link
+        document.addEventListener('click', async (e) => {
+          const a = e.target.closest('[data-open-create]');
+          if (!a) return;
+          e.preventDefault();
+          await loadCreate(a.getAttribute('href'));
+        });
+
+        async function loadCreate(url) {
+          bodyEl.innerHTML = '<div class="p-5 text-white/80 text-center">Loading…</div>';
+          const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
+          const html = await res.text();
+          openModal();
+          bodyEl.innerHTML = html; // fragment contains <form id="createProductForm">
+          wireCreateForm();
+        }
+
+        function wireCreateForm() {
+          const form = bodyEl.querySelector('#createProductForm');
+          if (!form) return;
+
+          form.addEventListener(
+            'submit',
+            async (ev) => {
+              ev.preventDefault();
+              const fd = new FormData(form);
+              const res = await fetch(form.action || window.location.href, {
+                method: 'POST',
+                body: fd,
+                credentials: 'same-origin',
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'X-CSRFToken': fd.get('csrfmiddlewaretoken') || '',
+                },
+              });
+
+              const ctype = res.headers.get('content-type') || '';
+              if (ctype.includes('application/json')) {
+                const data = await res.json();
+                if (data && data.ok) {
+                  if (window.showToast) showToast('Product created successfully', 'Your product is live.', 'success', 2200);
+                  closeModal();
+                  // refresh list if available, otherwise reload
+                  if (window.Products && typeof Products.refresh === 'function') Products.refresh();
+                  else window.location.reload();
+                  return;
+                }
+              }
+
+              // invalid form -> fragment HTML again
+              const html = await res.text();
+              bodyEl.innerHTML = html;
+              wireCreateForm();
+            },
+            { once: true }
+          );
+        }
+      })();
+    </script>
+
+    <script>
+      // Navbar refresh: works anywhere in the app
+      document.addEventListener('click', function (e) {
+        const btn = e.target.closest('[data-refresh-products]');
+        if (!btn) return;
+        e.preventDefault();
+        if (typeof window.reloadProducts === 'function') {
+          window.reloadProducts(); // AJAX refresh (no page reload)
+          if (typeof toast === 'function') toast('Refreshed!', 'success');
+        } else {
+          location.reload(); // fallback
+        }
+      });
+    </script>
+
+    <form style="display: none">{% csrf_token %}</form>
+
+    <script>
+      document.addEventListener('click', async function (e) {
+        const btn = e.target.closest('[data-ajax-logout]');
+        if (!btn) return;
+
+        e.preventDefault();
+
+        // Grab CSRF token (you already render a hidden csrf form at the bottom)
+        const csrf = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '';
+
+        try {
+          const res = await fetch("{% url 'main:api_logout' %}", {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              'X-CSRFToken': csrf,
+              'X-Requested-With': 'XMLHttpRequest',
+              Accept: 'application/json',
+            },
+          });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+          if (data && data.ok) {
+            if (window.showToast) showToast('Logged out', 'See you soon', 'success', 1400);
+            setTimeout(() => {
+              window.location.href = "{% url 'main:login' %}";
+            }, 300);
+          }
+        } catch (err) {
+          console.error(err);
+          if (window.showToast) showToast('Logout failed', 'Please try again.', 'error', 1800);
+        }
+      });
+    </script>
+
+    <script>
+      // -- helpers --
+      function getCookie(name) {
+        function getCookie(name) {
+          // escape all regex metacharacters in the cookie name
+          const esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const re = new RegExp('(?:^|; )' + esc + '=([^;]*)');
+          const m = document.cookie.match(re);
+          return m ? decodeURIComponent(m[1]) : null;
+        }
+        return m ? decodeURIComponent(m[1]) : null;
+      }
+      function showOkToast(title, body) {
+        window.showToast?.(title, body, 'success', 1400);
+      }
+      function showErrToast(title, body) {
+        window.showToast?.(title, body, 'error', 1800);
+      }
+
+      // -- LOGIN MODAL: open + load fragment --
+      async function openLoginModal(url) {
+        const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
+        const html = await res.text();
+        const body = document.getElementById('loginModalBody');
+        body.innerHTML = html;
+        document.getElementById('loginModal').classList.remove('hidden');
+        wireLoginForm(); // attach submit handler to the injected form
+      }
+
+      // -- LOGIN FORM: AJAX submit --
+      function wireLoginForm() {
+        const form = document.querySelector('#loginModalBody #loginForm');
+        if (!form) return;
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const fd = new FormData(form);
+          const res = await fetch(form.action || window.location.href, {
+            method: 'POST',
+            body: fd,
+            credentials: 'same-origin',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': fd.get('csrfmiddlewaretoken') || getCookie('csrftoken') || '',
+            },
+          });
+
+          const ctype = (res.headers.get('content-type') || '').toLowerCase();
+
+          // Success path: JSON {ok:true, message:"..."} from login_user()
+          // (already implemented on your server) :contentReference[oaicite:3]{index=3}
+          if (ctype.includes('application/json')) {
+            const data = await res.json();
+            if (data && data.ok) {
+              showOkToast('Signed in', data.message || 'Welcome!');
+              window.location.href = "{% url 'main:show_main' %}";
+              return;
+            }
+          }
+
+          // Error path (HTML fragment with form errors). Re-render inside the modal.
+          const html = await res.text();
+          document.getElementById('loginModalBody').innerHTML = html;
+          wireLoginForm(); // re-bind events on the updated DOM
+        });
+      }
+
+      // -- LOGOUT: AJAX POST to api_logout() --
+      document.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-ajax-logout]');
+        if (!btn) return;
+
+        e.preventDefault();
+        try {
+          const res = await fetch("{% url 'main:api_logout' %}", {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken') || '',
+              'X-Requested-With': 'XMLHttpRequest',
+              Accept: 'application/json',
+            },
+          });
+
+          const data = await res.json().catch(() => ({}));
+          if (data && data.ok) {
+            showOkToast('Signed out', data.message || 'See you soon!');
+            setTimeout(() => {
+              window.location.href = "{% url 'main:login' %}";
+            }, 300);
+          } else {
+            showErrToast('Logout failed', 'Please try again.');
+          }
+        } catch {
+          showErrToast('Logout failed', 'Network error.');
+        }
+      });
+
+      // -- Open login modal from any link with data-open-login --
+      document.addEventListener('click', (e) => {
+        const a = e.target.closest('[data-open-login]');
+        if (!a) return;
+        e.preventDefault();
+        openLoginModal(a.getAttribute('href'));
+      });
+
+      // -- Close login modal --
+      document.getElementById('closeLoginModal')?.addEventListener('click', () => {
+        document.getElementById('loginModal').classList.add('hidden');
+      });
+    </script>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+      <div class="relative min-h-full flex items-center justify-center p-4">
+        <div id="loginModalBody" class="w-full max-w-xl"></div>
+        <button type="button" id="closeLoginModal" class="btn btn-light position-absolute top-0 end-0 m-4">×</button>
+      </div>
+    </div>
+  </body>
+</html>

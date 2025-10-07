@@ -1,0 +1,46 @@
+/* Generic form theming with emerald accent */
+.form-green input[type="text"],
+.form-green input[type="url"],
+.form-green input[type="number"],
+.form-green input[type="password"],
+.form-green select,
+.form-green textarea {
+  width: 100%;
+  border: 1.6px solid #d1d5db;       /* gray-300-ish */
+  border-radius: 0.6rem;
+  padding: 0.65rem 0.9rem;
+  background: #fff;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.form-green textarea { min-height: 9rem; resize: vertical; }
+
+.form-green input:focus,
+.form-green select:focus,
+.form-green textarea:focus {
+  outline: none;
+  border-color: #10b981;             /* emerald-500 */
+  box-shadow: 0 0 0 .2rem rgba(16,185,129,.15);
+}
+
+/* Checkbox look without JS */
+.form-green input[type="checkbox"] {
+  width: 1.1rem; height: 1.1rem;
+  border-radius: .35rem;
+  border: 1.6px solid #cbd5e1;       /* slate-300-ish */
+  vertical-align: middle;
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  position: relative; background: #fff;
+}
+.form-green input[type="checkbox"]:checked {
+  background: #10b981; border-color: #10b981;
+}
+.form-green input[type="checkbox"]:checked::after {
+  content: "✓"; position: absolute; color:#fff; font-weight:700; font-size:.8rem;
+  top: 50%; left: 50%; transform: translate(-50%,-58%);
+}
+
+.form-check-input.input-sm {
+  width: 0.9rem;
+  height: 0.9rem;
+}
