@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="container d-flex align-items-center justify-content-center min-vh-100 bg-body-tertiary">
-    <div class="col-md-8 col-lg-6 col-xl-5">
+    <div class="col-md-8 col-lg-6 col-xl-5" id="register-fragment">
         <div class="card shadow-lg border-0 rounded-4">
             <div class="card-body p-5">
 
@@ -54,7 +54,7 @@
                 {% endif %}
 
                 <!-- Register Form -->
-                <form method="POST" action="">
+                <form method="POST" action="" id="registerForm">
                     {% csrf_token %}
 
                     <div class="mb-3">
@@ -113,3 +113,63 @@
     </div>
 </div>
 {% endblock content %}
+<script>
+;(() => {
+  async function onSubmit(e) {
+    e.preventDefault();
+
+    const form   = e.currentTarget;
+    const submit = form.querySelector('button[type="submit"]');
+    const csrf   = form.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '';
+
+    const original = submit ? submit.innerHTML : '';
+    if (submit) { submit.disabled = true; submit.innerHTML = 'Creating…'; }
+
+    try {
+      const res = await fetch(form.action || window.location.href, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': csrf
+        },
+        body: new FormData(form)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // Optional: you could show a toast with data.message here
+        window.location.assign(data?.redirect || '/login');
+        return;
+      }
+
+      if (res.status === 422) {
+        // Server returned the full rendered HTML with errors — swap #register-fragment
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const newFrag = doc.getElementById('register-fragment');
+        const oldFrag = document.getElementById('register-fragment');
+        if (newFrag && oldFrag) {
+          oldFrag.outerHTML = newFrag.outerHTML;
+          wireUp(); // re-bind the submit handler to the new form node
+        }
+        return;
+      }
+
+      alert('Something went wrong. Please try again.');
+    } catch (err) {
+      alert('Network error. Please try again.');
+    } finally {
+      if (submit) { submit.disabled = false; submit.innerHTML = original || 'Create Account'; }
+    }
+  }
+
+  function wireUp() {
+    const form = document.getElementById('registerForm');
+    if (!form) return;
+    form.removeEventListener('submit', onSubmit);
+    form.addEventListener('submit', onSubmit);
+  }
+
+  wireUp();
+})();
+</script>

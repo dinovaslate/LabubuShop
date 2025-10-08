@@ -119,21 +119,93 @@
 
 <script>
 ;(() => {
-  const t = document.getElementById('toast');
-  const m = document.getElementById('toastMsg');
-  const holder = document.getElementById('toast-data');
-  const msg = holder ? holder.dataset.msg : null;
+  // --- tiny toast helper (uses your existing #toast element) ---
+  function showToast(text = "Saved.", ms = 1600) {
+    const t = document.getElementById('toast');
+    const m = document.getElementById('toastMsg');
+    if (!t || !m) return;
+    m.textContent = text;
+    t.style.display = "block";
+    t.style.opacity = "1";
+    setTimeout(() => {
+      t.style.transition = "opacity .4s ease";
+      t.style.opacity = "0";
+      setTimeout(() => { t.style.display = "none"; t.style.transition = ""; }, 400);
+    }, ms);
+  }
 
-  if (!t || !m || !msg) return;
+  // Show first Django message (non-AJAX navigations) once
+  (() => {
+    const holder = document.getElementById('toast-data');
+    const msg = holder ? holder.dataset.msg : null;
+    if (msg) showToast(msg);
+  })();
 
-  m.textContent = msg;
-  t.style.display = "block";
-  t.style.opacity = "1";
-  setTimeout(() => {
-    t.style.transition = "opacity .4s ease";
-    t.style.opacity = "0";
-    setTimeout(() => { t.style.display = "none"; t.style.transition = ""; }, 400);
-  }, 1600);
+  // --- AJAX login ---
+  async function onSubmit(e) {
+    e.preventDefault();
+
+    const form = e.currentTarget;
+    const btn  = form.querySelector('button[type="submit"]');
+    const csrf = form.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '';
+
+    // UX: disable while sending
+    const original = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = 'Signing in…'; }
+
+    try {
+      const res = await fetch(form.action || window.location.href, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': csrf
+        },
+        body: new FormData(form)
+      });
+
+      if (res.ok) {
+        // Success → JSON with redirect + message
+        const data = await res.json();
+        if (data?.message) showToast(data.message, 1000);
+        // Navigate (cookie is already set in the JSON response server-side)
+        window.location.assign(data?.redirect || '/');
+        return;
+      }
+
+      if (res.status === 422) {
+        // Invalid form → server returned full HTML; extract #login-fragment and swap it in
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newFrag = doc.getElementById('login-fragment');
+        const oldFrag = document.getElementById('login-fragment');
+        if (newFrag && oldFrag) {
+          oldFrag.outerHTML = newFrag.outerHTML;
+          // re-bind to the *new* form element inside the replaced fragment
+          wireUp();
+        }
+        return;
+      }
+
+      // Other error
+      showToast('Something went wrong. Please try again.');
+    } catch (err) {
+      showToast('Network error. Please try again.');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = original || 'Sign In'; }
+    }
+  }
+
+  function wireUp() {
+    const form = document.getElementById('loginForm');
+    if (!form) return;
+    // prevent duplicate bindings if wireUp() runs again after fragment swap
+    form.removeEventListener('submit', onSubmit);
+    form.addEventListener('submit', onSubmit);
+  }
+
+  // init
+  wireUp();
 })();
 </script>
 

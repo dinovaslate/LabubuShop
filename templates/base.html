@@ -156,7 +156,7 @@
           const res = await fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
           const html = await res.text();
           const doc = new DOMParser().parseFromString(html, 'text/html');
-          const frag = doc.querySelector('#login-fragment');
+          const frag = document.querySelector('#login-fragment');
           if (!frag) {
             bodyEl.innerHTML = '<div class="text-white">Failed to load login.</div>';
             return;

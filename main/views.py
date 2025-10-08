@@ -41,30 +41,41 @@ def show_main(request):
 
     return render(request, "main.html", context)
 
+@require_http_methods(["GET", "POST"])
 def login_user(request):
+    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            # toast for non-AJAX via Django messages
             messages.success(request, f"Welcome back, {user.username}!")
+
+            if is_ajax:
+                # Send JSON + set the same cookie you'd set on normal redirect
+                resp = JsonResponse({
+                    "ok": True,
+                    "message": f"Welcome back, {user.username}!",
+                    "redirect": reverse("main:show_main"),
+                })
+                resp.set_cookie('last_login', str(datetime.datetime.now()))
+                return resp
+
             response = HttpResponseRedirect(reverse("main:show_main"))
             response.set_cookie('last_login', str(datetime.datetime.now()))
-            # toast for AJAX (login modal)
-            if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                return JsonResponse({"ok": True, "message": f"Welcome back, {user.username}!"})
             return response
 
-        # invalid login on AJAX -> return the fragment so the modal updates
-        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        # invalid form (AJAX) → send the whole page HTML; front-end will pick #login-fragment
+        if is_ajax:
             html = render_to_string("login.html", {"form": form}, request=request)
             return HttpResponse(html, status=422)
+
     else:
         form = AuthenticationForm(request)
 
-    # initial GET (normal or AJAX-opened modal)
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+    # GET
+    if is_ajax:
         html = render_to_string("login.html", {"form": form}, request=request)
         return HttpResponse(html)
 
@@ -103,20 +114,38 @@ def delete_product(request, id):
     return redirect("main:show_main")
 
 
+@require_http_methods(["GET", "POST"])
 def register(request):
-    form = UserCreationForm()
-    context = {'form':form}
+    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+
     if request.method == "POST":
-        usr = User.objects.filter(username=request.POST['username'])
-        context['error'] = "Username already exist"
-        if not usr.exists() :
-            form = UserCreationForm(request.POST)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Your account has been successfully created!')
-                return redirect('main:login')
-   
-    return render(request, 'register.html', context)
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your account has been successfully created!')
+
+            if is_ajax:
+                return JsonResponse({
+                    "ok": True,
+                    "message": "Account created successfully.",
+                    "redirect": reverse("main:login"),
+                })
+            return redirect('main:login')
+
+        # invalid form → send full HTML; front-end will swap #register-fragment
+        if is_ajax:
+            html = render_to_string("register.html", {"form": form}, request=request)
+            return HttpResponse(html, status=422)
+
+    else:
+        form = UserCreationForm()
+
+    # GET
+    if is_ajax:
+        html = render_to_string("register.html", {"form": form}, request=request)
+        return HttpResponse(html)
+
+    return render(request, "register.html", {"form": form})
 
 
 @login_required(login_url='/login')
